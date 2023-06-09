@@ -1,4 +1,4 @@
-# BLAST_dateFiltering
+# Filtering BLAST data by release date
 
 Written by Sean McAllister, v.1 01/2023
 
