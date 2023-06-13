@@ -20,114 +20,86 @@ The work flow for this processing progresses through the following steps:
 2. Run btab_date_manipulations.pl iteratively to first develop the Reference Date/Accession Database for gene of interest. When complete, no MissingDate_Accessions.txt will be created for follow up.
 3. Reformat the btab file to choose the best blast hits.
 4. Run REVAMP, copying off important files.
-5. Run ASV_depth_calculation.pl script to calculate Total ASVs to taxa, Relative Abundance % ASVs to taxa, Relative Abundance % of Community to taxa, and % Accuracy to current taxonomic assignments.
+5. Run ASV_depth_calculation.pl script to calculate Total ASVs to taxa, Percent ASVs to taxa, Percent of overall community to taxa, and Percent Accuracy to current taxonomic assignments.
 6. Clean up final files.
 
+## btab_date_manipulations.pl
+Takes blastn ```-outfmt 6``` btab data file and produces new file with all records submitted to GenBank after a particular date excluded. Deciphers date information from GenBank records. Prints to file accessions missing date information for follow up. Prints to file all accession/date decisions for a reference database (so future runs do not need additional compute time for the same accession).
 
+Assesses from the btab file the maximum depth appropriate for taxonomic inference for each ASV. This is assigned based on user-supplied taxonomic cutoffs. The maximum depth for inference is defined as the taxonomic level one up from the level inclusive of the lowest percent identity (PID) BLAST assignment. Thus, of a list of (e.g. 4000) BLAST hits with the lowest PID hit at the ORDER level, the depth of taxonomic inference is set to FAMILY, assuming all possible FAMILY level hits are captured in the BLAST data. This is important when BLAST hits are deleted from the btab file, ensuring that all results from a particular taxonomic depth are included before assessment over time. Otherwise, a lack of taxonomic assignment may be the result of a high number of deleted over-represented sequences with no next-best hits to replace them because they were not recorded in the original btab file. 
 
-BELOW IS IN DEVELOPMENT (NOT FOR THIS REPO)
+Use the same taxonomy cutoff string ```-t``` as used in REVAMP. Example for protein encoding genes: "95,92,87,77,67,60". Example for ribosomal RNA genes: "97,95,90,80,70,60". Cutoffs define the boundaries of Species, Genus, Family, Order, Class, Phylum, and unknown assignments.
 
-
-## Options
+### Options
 ```
--a = ASV counts table (make sure there is text in the upper left)
--s = Formatted blastn results (w/ headers ASV Perc Len TaxID correction)
--t = reformatted taxonkit output (TaxID simplified taxonomy)
--f = filtering options Species,Genus,Family,Order,Class,Phylum (e.g. 97,95,90,80,70,60)
--n = Allin Output basename
--c = Location of common names file (grep "genbank common name" from names.dmp NCBI taxonomy file)
--d = List of ASVs to ignore (one per line) for outputs ignoring contaminants and/or unknowns
--o = List of samples (one per line) in the order you want them exported. Must be exact matches to ASV counts table. Does not have to include all samples.
+-i = Input btab BLASTn file (-outfmt '6 qseqid pident length staxids sacc')
+-m = Month cuttoff setting (i.e. 1 or 6 or 12)
+-y = Year cuttoff setting (i.e. 2014)
+-t = Taxonomy cutoffs string (i.e. 95,92,87,77,67,60)
+-d = Accession and date file (optional if -r provided)
+-o = Out directory
+-r = Reference file with Acc\tYear\tNumericMonth data (optional)
 -h = This help message
 ```
 
-##### ASV counts table (-a, tab delimited)
-```
-x	sample1	sample2	sample3
-ASV_1	914	365	3519
-ASV_2	4897	33097	13934
-ASV_3	0	2124	0
-```
-##### Formatted blastn results (-s, tab delimited)
-Create from ```-outfmt '6 qseqid pident length staxids'```
+```-d``` file is produced through ```grep "Submitted (\|ACCESSION\|JOURNAL\|LOCUS"``` from each accession numbers GenBank record.
 
+## reformat_blast.R
+Takes BLASTn btab file and simplifies output selecting the best PID greater than a user defined length (best if ~90% of the marker gene length).
+
+### Options (positional)
 ```
-ASV	percent	length	taxid	correction
-ASV_1	100	313	102976	313
-ASV_2	82.372	313	207955	257.824
-ASV_3	100	313	67591, 67591;134455, 360400	313
+POSITION 1 = path to btab file
+POSITION 2 = path to out directory
+POSITION 3 = numeric denoting the bp length cutoff for consideration
 ```
 
-Note: Taxonomic assignments like ```67591;134455``` above indicate two taxonomic IDs assigned to the same sequence. These assignments are ignored unless they are the only assignment for the best blast hits.
+## ASV_depth_calculation.pl
+Takes REVAMP ASV taxonomy file, ASV counts file, and ASV depth of taxonomic inference file and calculates statistics on Total ASVs assigned to each taxa (Species to Class), Percent of ASVs assigned to each taxa (Species to Class), Percent of overal community (based on ASV relative abundance) to each taxa (Species to Class), and Percent accuracy to current taxonomic assignments (with count of total ASVs used for assessment).
 
-##### Reformatted taxonkit output (-t)
-Create list of taxid from each formatted blastn result file and run through taxonkit
-
+### Options
 ```
-taxonkit lineage taxids.txt | awk '$2!=""' > taxonkit_out.txt
-taxonkit reformat taxonkit_out.txt | cut -f1,3 > reformatted_taxonkit_out.txt
-```
-Produces list of taxIDs (column one) and their taxonomy assignment (K;P;C;O;F;G;S, second column)
-
-```
-102976	Eukaryota;Arthropoda;Malacostraca;Euphausiacea;Euphausiidae;Euphausia;Euphausia pacifica
-207955	Eukaryota;Arthropoda;Hexanauplia;Calanoida;Centropagidae;Centropages;Centropages abdominalis
-67591	Eukaryota;Oomycota;Peronosporales__c;Peronosporales;Peronosporaceae;Phytophthora;Phytophthora macrochlamydospora
-134455	Eukaryota;Oomycota;Peronosporales__c;Peronosporales;Peronosporaceae;Phytophthora;Phytophthora quininea
-360400	Eukaryota;Oomycota;Peronosporales__c;Peronosporales;Peronosporaceae;Phytophthora;Phytophthora captiosa
+-t = ASV taxonomy file for date test (from date run of REVAMP)
+-c = ASV counts file (from original run of REVAMP)
+-d = ASV_depthOfTaxonomicInference file (from btab_date_manipulations.pl run)
+-o = Original ASV taxonomy file for accuracy comparison (from original run of REVAMP)
+-h = This help message
 ```
 
-Note: Gaps in the NCBI taxonomy at each level are filled from the lower taxonomic assignment. I.E. ```Peronosporales__c``` in the above example means that it is the class containing the order Peronosporales. These tags help to keep track of individual taxa so that they are not relegated to "Unknown" or "NA" on filtering.
-
-##### Filtering options (-f)
-Use this comma delimited string to set the boundaries for assignment confidence based on percent identity. For ```97,95,90,80,70,60```: species assignment for ```x≥97%```, genus assignment for ```97%>x≥95%```, family assignment for ```95%>x≥90%```, order assignment for ```90%>x≥80%```, class assignment for ```80%>x≥70%```, phylum assignment for ```70%>x≥60%```, and anything lower than ```60%``` is assigned to "Unknown."
-
-##### Other options
-```-n``` is the outname of your choice
-
-```-c``` is created from the names.dmp NCBI taxonomy file. ```grep "genbank common name" names.dmp > commonNames.txt```
- 
-```-d``` (optional) List of ASVs to ignore (one per line)
-```-o``` (optional) List of samples in the appropriate order for outfiles (one per line, must match the ASV counts file.
-
-### Example assignment
-From the examples given, you would get the following assignments:
-
-```
-ASV_1	Eukaryota;Arthropoda;Malacostraca;Euphausiacea;Euphausiidae;Euphausia;Euphausia pacifica
-ASV_2	Eukaryota;Arthropoda;Hexanauplia
-ASV_3	Eukaryota;Oomycota;Peronosporales__c;Peronosporales;Peronosporaceae;Phytophthora
-```
+## Reference Databases
+Accession and date reference databases for marker genes already run through this pipeline. Currently: ```Kelly 16S```, ```Machida 18S```, ```Leray COI```, ```Miya MiFish```.
 
 ## Dependencies
 
-To create files prior to running will need:
+See REVAMP (URL) documentation for dependencies from that pipeline.
 
-1. ```blastn``` (https://blast.ncbi.nlm.nih.gov/Blast.cgi?PAGE_TYPE=BlastDocs&DOC_TYPE=Download)
-2. ```taxonkit``` (https://bioinf.shenwei.me/taxonkit/)
-
-The script itself requires:
-
-1. ```perl``` ```List::MoreUtils```
-2. ```taxonkit``` (https://bioinf.shenwei.me/taxonkit/)
-3. ```ImportText.pl``` KronaTools (https://hpc.nih.gov/apps/kronatools.html)
-
+These scripts/workflow require:
+1. REVAMP (URL)
+2. ```efetch``` (https://www.ncbi.nlm.nih.gov/books/NBK179288/)
+3. ```perl``` ```List::MoreUtils```
+4. ```Rscript```
+5. ```R``` package ```dplyr```
 
 ## Outputs
-This program produces a lot of useful output files.
+The primary output of this pipeline is a tab-delimited file that requires some cleanup. Each YYYY_MM combiation prints out the following for assessment of the depth of taxonomic assignment and accuracy (compared to current taxonomic assignments) over time. A column might have an "NA" if there are no ASVs where depth can be inferred to that level.
 
-1. ```outname_asvTaxonomyTable.txt``` Main taxonomy table with assignments per ASV. (+IGNORE file when given)
-2. ```outname_barchart.txt``` Terminal taxonomy assignments with counts for easy barchart manipulation in Excel. (+IGNORE +NoUnknowns).
-3. ```outname_barchart_forR.txt``` Terminal taxonomy assignments with counts for easy barchart creation in R. (+IGNORE)
-4. ```outname_master_krona.html``` Krona Plot showing hierarchical taxonomy browser per sample. (+IGNORE)
-5. ```outname_wholeKRONA.html``` Krona Plot showing hierarchical taxonomy browser will all sample counts summed.
-6. ```outname_singleBlastHits_with_MULTItaxid.txt``` Prints hits with two taxIDs per sequence (e.g. ```67591;134455```) and whether they were chosen for downstream output.
-7. ```outname_unique_terminaltaxa.txt``` List all terminal taxa.
-6. ```outname_taxid_to_commonname_ALL.txt``` List of common names associated with taxIDs.
-12. ```outname_heatmap_multiASV.txt``` List of ASVs, and their count tables, for each taxa at each hierarchy. Best used for the lower/deeper taxa to highlight ASVs with the same taxonomic assignment where one might be real (have large counts) and one ASV might have a different length/contain slight erroneous bases. Could help with filtering ASVs. (+IGNORE)
-13. ```outname_unknown_asvids.txt``` A list of all the ASVs assigned to "Unknown" and the reason why (```NO TAXID ASSIGNMENT```, ```TaxaStringDeleted_or_DoesNotExist```, ```NOCONFIDENCE```)
-
-
+1. ```TotalASVs_species``` = Total number of ASVs that can be assigned to Species.
+2. ```TotalASVs_genus``` = Total number of ASVs that can be assigned to Genus.
+3. ```TotalASVs_family``` = Total number of ASVs that can be assigned to Family.
+4. ```TotalASVs_order``` = Total number of ASVs that can be assigned to Order.
+5. ```TotalASVs_class``` = Total number of ASVs that can be assigned to Class.
+6. ```%ASVs_species``` = Percent of ASVs that can be assigned to Species.
+7. ```%ASVs_genus``` = Percent of ASVs that can be assigned to Genus.
+8. ```%ASVs_family``` = Percent of ASVs that can be assigned to Family.
+9. ```%ASVs_order``` =  Percent of ASVs that can be assigned to Order.
+10. ```%ASVs_class``` = Percent of ASVs that can be assigned to Class.
+11. ```%Community_species``` = Percent of the overall community that can be assigned to Species.
+12. ```%Community_genus``` = Percent of the overall community that can be assigned to Genus.
+13. ```%Community_family``` = Percent of the overall community that can be assigned to Family.
+14. ```%Community_order``` = Percent of the overall community that can be assigned to Order.
+15. ```%Community_class``` = Percent of the overall community that can be assigned to Class.
+16. ```%AccurateASVs``` = Percent of total ASVs that match with current taxonomic assignments.
+17. ```TotalASVsinAccuracyEstimate``` = Total number of ASVs that are included in the accuracy estimate.
 
 ### Legal Disclaimer
 
