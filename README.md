@@ -4,12 +4,26 @@ Written by Sean McAllister, v.1 01/2023
 
 ## Purpose
 
-The purpose of this repository is to encapsulate the methods and scripts used to reformat tab-delimited (-outfmt '6 qseqid pident length staxids sacc') BLAST outfiles to exclude matches released by NCBI after a set date, and to perform this iteratively to assess the ability of the NCBI nt reference database to resolve metabarcoding Amplicon Sequence Variants (ASVs) to Class, Order, Family, Genus, and Species taxonomic levels. Uses REVAMP to assign taxonomy (available: URL).
+The purpose of this repository is to encapsulate the methods and scripts used to reformat tab-delimited (-outfmt '6 qseqid pident length staxids sacc') BLAST outfiles to exclude matches released by NCBI after a set date, and to perform this iteratively to assess the ability of the NCBI nt reference database to resolve metabarcoding Amplicon Sequence Variants (ASVs) to Class, Order, Family, Genus, and Species taxonomic levels. Uses REVAMP to assign taxonomy (available here: URL).
 
 ## Files
 
-1. Example work flow for downloading date information from NCBI, 
-2. 
+1. Example work flow. 
+2. btab_date_manipulations.pl – Remove blast hits in btab file based on reference database.
+3. reformat_blast.R – Reformat blast output to choose best hit longer than user-specified cutoff.
+4. ASV_depth_calculation.pl – Calculates depths of taxonomic inference.
+5. reference_databases – Example pre-calculated reference databases from prior OME runs.
+
+## Work flow
+The work flow for this processing progresses through the following steps:
+1. Download date information from NCBI for all blast hit accessions.
+2. Run btab_date_manipulations.pl iteratively to first develop the Reference Date/Accession Database for gene of interest. When complete, no MissingDate_Accessions.txt will be created for follow up.
+3. Reformat the btab file to choose the best blast hits.
+4. Run REVAMP, copying off important files.
+5. Run ASV_depth_calculation.pl script to calculate Total ASVs to taxa, Relative Abundance % ASVs to taxa, Relative Abundance % of Community to taxa, and % Accuracy to current taxonomic assignments.
+6. Clean up final files.
+
+
 
 BELOW IS IN DEVELOPMENT (NOT FOR THIS REPO)
 
