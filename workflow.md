@@ -1,7 +1,7 @@
-# Work flow for date filtering of BLAST database and run through REVAMP
+# Workflow for date filtering of BLAST database and run through REVAMP
 
 ## Summary
-The work flow for this processing progresses through the following steps:
+The workflow for this processing progresses through the following steps:
 1. Download date information from NCBI for all blast hit accessions.
 2. Run btab_date_manipulations.pl iteratively to first develop the Reference Date/Accession Database for gene of interest. When complete, no MissingDate_Accessions.txt will be created for follow up.
 3. Reformat the btab file to choose the best blast hits.
@@ -9,7 +9,7 @@ The work flow for this processing progresses through the following steps:
 5. Run ASV_depth_calculation.pl script to calculate Total No. ASVs to taxa, Percent of ASVs to taxa, Percent of Overall Community to taxa, and Percent Accuracy to current taxonomic assignments.
 6. Clean up final files.
 
-## Work flow
+## Workflow
 
 ### Download date information from NCBI for all blast hit accessions.
 
