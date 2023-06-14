@@ -8,14 +8,14 @@ The purpose of this repository is to encapsulate the methods and scripts used to
 
 ## Files
 
-1. Example work flow. 
+1. Example workflow. 
 2. btab_date_manipulations.pl – Remove blast hits in btab file based on reference database.
 3. reformat_blast.R – Reformat blast output to choose best hit longer than user-specified cutoff.
 4. ASV_depth_calculation.pl – Calculates depths of taxonomic inference.
 5. reference_databases – Example pre-calculated reference databases from prior OME runs.
 
-## Work flow
-The work flow for this processing progresses through the following steps:
+## Workflow
+The workflow for this processing progresses through the following steps:
 1. Download date information from NCBI for all blast hit accessions.
 2. Run btab_date_manipulations.pl iteratively to first develop the Reference Date/Accession Database for gene of interest. When complete, no MissingDate_Accessions.txt will be created for follow up.
 3. Reformat the btab file to choose the best blast hits.
