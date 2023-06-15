@@ -30,7 +30,7 @@ Assesses from the btab file the maximum depth appropriate for taxonomic inferenc
 
 Use the same taxonomy cutoff string ```-t``` as used in REVAMP. Example for protein encoding genes: "95,92,87,77,67,60". Example for ribosomal RNA genes: "97,95,90,80,70,60". Cutoffs define the boundaries of Species, Genus, Family, Order, Class, Phylum, and unknown assignments.
 
-### Options
+### Arguments
 ```
 -i = Input btab BLASTn file (-outfmt '6 qseqid pident length staxids sacc')
 -m = Month cuttoff setting (i.e. 1 or 6 or 12)
@@ -47,7 +47,7 @@ Use the same taxonomy cutoff string ```-t``` as used in REVAMP. Example for prot
 ## reformat_blast.R
 Takes BLASTn btab file and simplifies output selecting the best PID greater than a user defined length (best if ~90% of the marker gene length).
 
-### Options (positional)
+### Arguments (positional)
 ```
 POSITION 1 = path to btab file
 POSITION 2 = path to out directory
@@ -57,7 +57,7 @@ POSITION 3 = numeric denoting the bp length cutoff for consideration
 ## ASV_depth_calculation.pl
 Takes REVAMP ASV taxonomy file, ASV counts file, and ASV depth of taxonomic inference file and calculates statistics on Total ASVs assigned to each taxa (Species to Class), Percent of ASVs assigned to each taxa (Species to Class), Percent of overal community (based on ASV relative abundance) to each taxa (Species to Class), and Percent accuracy to current taxonomic assignments (with count of total ASVs used for assessment).
 
-### Options
+### Arguments
 ```
 -t = ASV taxonomy file for date test (from date run of REVAMP)
 -c = ASV counts file (from original run of REVAMP)
