@@ -4,7 +4,7 @@ Written by Sean McAllister, v.1 01/2023
 
 ## Purpose
 
-The purpose of this repository is to encapsulate the methods and scripts used to reformat tab-delimited (-outfmt '6 qseqid pident length staxids sacc') BLAST outfiles to exclude matches released by NCBI after a set date, and to perform this iteratively to assess the ability of the NCBI nt reference database to resolve metabarcoding Amplicon Sequence Variants (ASVs) to Class, Order, Family, Genus, and Species taxonomic levels. Uses REVAMP to assign taxonomy (available here: URL).
+The purpose of this repository is to encapsulate the methods and scripts used to reformat tab-delimited (-outfmt '6 qseqid pident length staxids sacc') BLAST outfiles to exclude matches released by NCBI after a set date, and to perform this iteratively to assess the ability of the NCBI nt reference database to resolve metabarcoding Amplicon Sequence Variants (ASVs) to Class, Order, Family, Genus, and Species taxonomic levels. Uses [REVAMP](https://github.com/McAllister-NOAA/REVAMP) to assign taxonomy.
 
 ## Files
 
